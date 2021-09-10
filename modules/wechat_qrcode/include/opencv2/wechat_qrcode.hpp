@@ -20,7 +20,7 @@ namespace wechat_qrcode {
  * @brief WeChatQRCodeResult includes information about detected instance of QR codes.
  *
  */
-class CV_EXPORTS_W WeChatQRCodeResult
+class CV_EXPORTS_W_SIMPLE WeChatQRCodeResult
 {
 
 public:
