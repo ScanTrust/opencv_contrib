@@ -20,7 +20,8 @@ class Align {
 public:
     Align();
     Mat calcWarpMatrix(const Mat src, const Mat dst);
-    std::vector<Point2f> warpBack(const std::vector<Point2f> &dst_pts);
+    std::vector<Point2f> warpBack(const std::vector<Point2f> &dst_pts) const;
+    Mat warpBack(const Mat &dst_pts) const;
     Mat crop(const Mat &inputImg, const Mat &srcPts, const float paddingW, const float paddingH,
              const int minPadding);
 
