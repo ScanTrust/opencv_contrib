@@ -135,6 +135,15 @@ public:
      */
     CV_WRAP std::vector<WeChatQRCodeResult> detectAndDecodeFullOutput(InputArray img);
 
+    /**
+     * @brief  Both detects and decodes QR code, returns a list of decoded QR.
+     * To simplify the usage, there is only two API: detectAndDecode, detectAndDecodeFullOutput
+     *
+     * @param img supports grayscale or color (BGR) image.
+     * @return list of QR.
+     */
+    CV_WRAP std::vector<WeChatQRCodeResult> detectAndDecodeFullOutput(InputArray img);
+
 protected:
     class Impl;
     Ptr<Impl> p;
