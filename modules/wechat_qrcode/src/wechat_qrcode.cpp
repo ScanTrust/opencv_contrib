@@ -291,15 +291,6 @@ int WeChatQRCode::Impl::applyDetector(const Mat& img, vector<Mat>& points) {
 
     points = detector_->forward(img, detect_width, detect_height);
 
-    float x0 = points[0].at<float>(0, 0);
-    float y0 = points[0].at<float>(0, 1);
-    float x1 = points[0].at<float>(1, 0);
-    float y1 = points[0].at<float>(1, 1);
-    float x2 = points[0].at<float>(2, 0);
-    float y2 = points[0].at<float>(2, 1);
-    float x3 = points[0].at<float>(3, 0);
-    float y3 = points[0].at<float>(3, 1);
-
     return 0;
 }
 

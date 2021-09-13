@@ -35,7 +35,7 @@ Mat Align::warpBack(const Mat &dst_pts) const {
 
     Mat src_pts(dst_pts.rows, 2, CV_32FC1);
     float x, y;
-    for (size_t j = 0; j < dst_pts.rows; j++) {
+    for (int j = 0; j < dst_pts.rows; j++) {
         x = dst_pts.at<float>(j, 0);
         y = dst_pts.at<float>(j, 1);
         src_pts.at<float>(j, 0) = (rotate90_ ? y : x) + crop_x_;
