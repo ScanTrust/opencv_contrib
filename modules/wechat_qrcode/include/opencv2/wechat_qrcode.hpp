@@ -96,7 +96,8 @@ public:
     CV_WRAP WeChatQRCode(const std::string& detector_prototxt_path = "",
                          const std::string& detector_caffe_model_path = "",
                          const std::string& super_resolution_prototxt_path = "",
-                         const std::string& super_resolution_caffe_model_path = "");
+                         const std::string& super_resolution_caffe_model_path = "",
+                         bool multiscale = true);
     ~WeChatQRCode(){};
 
     /**
