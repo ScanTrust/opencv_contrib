@@ -11,7 +11,7 @@ using std::max;
 using std::min;
 namespace cv {
 namespace scantrust_qrcode {
-Align::Align() { rotate90_ = false; }
+Align::Align(): crop_x_(), crop_y_(0), rotate90_(false) {}
 
 Mat Align::calcWarpMatrix(const Mat src, const Mat dst) {
     M_ = getPerspectiveTransform(src, dst);
