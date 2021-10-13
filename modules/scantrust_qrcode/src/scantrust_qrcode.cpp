@@ -2,6 +2,7 @@
 // It is subject to the license terms in the LICENSE file found in the top-level directory
 // of this distribution and at http://opencv.org/license.html.
 //
+// This code is based on Tencent WeChat QR Code reader provided in opencv contrib
 // Tencent is pleased to support the open source community by making WeChat QRCode available.
 // Copyright (C) 2020 THL A29 Limited, a Tencent company. All rights reserved.
 
@@ -108,32 +109,46 @@ float ScantrustQRCodeResult::getDecodeScale() const {
 
 class ScantrustQRCode::Impl {
 public:
-    Impl() {}
+    DownscalingRules m_downscalingRules;
+
+    Impl(const DownscalingRules& downscalingRules):m_downscalingRules(downscalingRules) {}
     ~Impl() = default;
     /**
-     * @brief decode QR codes from detected points
+     * @brief decode QR codes
      *
      * @param img supports grayscale or color (BGR) image.
-     * @param candidate_points detected points. we name it "candidate points" which means no
-     * all the qrcode can be decoded.
-     * @param points succussfully decoded qrcode with bounding box points.
      * @return vector<string>
      */
+
+
     std::vector<ScantrustQRCodeResult> decode(const Mat& img);
-    Mat cropObj(const Mat& img, const Mat& point, Align& aligner);
     std::vector<float> getDownscaleList(int width, int height);
 };
 
-ScantrustQRCode::ScantrustQRCode() {
-    p = makePtr<ScantrustQRCode::Impl>();
+ScantrustQRCode::ScantrustQRCode()
+{
+
+    DownscalingRules downscale_rules = {
+        {4500, {20.0, 50.0, 18.0, 22.0, 12.0, 6.0}},
+        {3000, {14.0, 16.0, 6.0, 42.0, 40.0, 4.0}},
+        {1500, {18.0, 16.0, 6.0, 5.0, 2.0}},
+        {0, {8.0, 5.0, 1.0}}
+    };
+    p = makePtr<ScantrustQRCode::Impl>(downscale_rules);
 }
+
+ScantrustQRCode::ScantrustQRCode(const DownscalingRules& downscalingRules)
+{
+    p = makePtr<ScantrustQRCode::Impl>(downscalingRules);
+}
+
 
 vector<ScantrustQRCodeResult> ScantrustQRCode::detectAndDecode(InputArray img) {
     CV_Assert(!img.empty());
     CV_CheckDepthEQ(img.depth(), CV_8U, "");
 
     if (img.cols() <= 20 || img.rows() <= 20) {
-        return vector<ScantrustQRCodeResult>();  // image data is not enough for providing reliable results
+        return {};  // image data is not enough for providing reliable results
     }
     Mat input_img;
     int incn = img.channels();
@@ -182,27 +197,24 @@ vector<ScantrustQRCodeResult> ScantrustQRCode::Impl::decode(const Mat& img) {
     return qr_results;
 }
 
-Mat ScantrustQRCode::Impl::cropObj(const Mat& img, const Mat& point, Align& aligner) {
-    // make some padding to boost the qrcode details recall.
-    float padding_w = 0.1f, padding_h = 0.1f;
-    auto min_padding = 15;
-    auto cropped = aligner.crop(img, point, padding_w, padding_h, min_padding);
-    return cropped;
-}
+DownscalingRule::DownscalingRule():
+lower_size_limit(), downscaling_factor_sequence()
+{}
 
-// empirical rules
+DownscalingRule::DownscalingRule(int lower_size_limit, vector<float> downscaling_factor_sequence):
+lower_size_limit(lower_size_limit), downscaling_factor_sequence(std::move(downscaling_factor_sequence))
+{}
+
 vector<float> ScantrustQRCode::Impl::getDownscaleList(int width, int height) {
-
     unsigned int average_width = (width + height) / 2;
-    if (average_width < 1500) {
-        return {8.0, 5.0, 1.0};
-    } else if (average_width < 3000) {
-        return {18.0, 16.0, 6.0, 5.0, 2.0};
-    } else if (average_width < 4500) {
-        return {14.0, 16.0, 6.0, 42.0, 40.0, 4.0};
-    } else {
-        return {20.0, 50.0, 18.0, 22.0, 12.0, 6.0};
+
+    for (const auto& rule : m_downscalingRules) {
+        if( average_width > rule.lower_size_limit ) {
+            return rule.downscaling_factor_sequence;
+        }
     }
+    return m_downscalingRules[m_downscalingRules.size() - 1].downscaling_factor_sequence;
 }
+
 }  // namespace scantrust_qrcode
 }  // namespace cv
