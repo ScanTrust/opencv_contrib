@@ -14,10 +14,10 @@ namespace cv {
 namespace scantrust_qrcode {
 
 
-//! @addtogroup wechat_qrcode
+//! @addtogroup scantrust_qrcode
 //! @{
 /**
- * @brief WeChatQRCodeResult includes information about detected instance of QR codes.
+ * @brief ScantrustQRCodeResult includes information about detected instance of QR codes.
  *
  */
 class CV_EXPORTS_W_SIMPLE ScantrustQRCodeResult
@@ -70,6 +70,16 @@ private:
 //! @}
 
 
+class CV_EXPORTS_W_SIMPLE DownscalingRule {
+public:
+    DownscalingRule();
+    CV_WRAP DownscalingRule(int lower_size_limit, std::vector<float> downscaling_factor_sequence);
+    unsigned int lower_size_limit;
+    std::vector<float> downscaling_factor_sequence;
+};
+
+typedef std::vector<DownscalingRule> DownscalingRules;
+
 //! @addtogroup scantrust_qrcode
 //! @{
 /**
@@ -92,6 +102,7 @@ public:
 
      */
     CV_WRAP ScantrustQRCode();
+    CV_WRAP ScantrustQRCode(const DownscalingRules& downscalingRules);
     ~ScantrustQRCode(){};
 
     /**
@@ -104,6 +115,7 @@ public:
     CV_WRAP std::vector<ScantrustQRCodeResult> detectAndDecode(InputArray img);
 
 protected:
+    const std::vector<std::pair<int, std::vector<float>>> m_downscalingRules;
     class Impl;
     Ptr<Impl> p;
 };
