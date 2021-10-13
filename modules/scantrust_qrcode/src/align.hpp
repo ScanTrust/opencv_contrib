@@ -5,8 +5,8 @@
 // Tencent is pleased to support the open source community by making WeChat QRCode available.
 // Copyright (C) 2020 THL A29 Limited, a Tencent company. All rights reserved.
 
-#ifndef __DETECTOR_ALIGN_HPP_
-#define __DETECTOR_ALIGN_HPP_
+#ifndef __SCANTRUST_QRCODE_DETECTOR_ALIGN_HPP_
+#define __SCANTRUST_QRCODE_DETECTOR_ALIGN_HPP_
 
 #include <stdio.h>
 #include <fstream>
@@ -14,13 +14,14 @@
 #include "opencv2/imgproc.hpp"
 
 namespace cv {
-namespace wechat_qrcode {
+namespace scantrust_qrcode {
 
 class Align {
 public:
     Align();
     Mat calcWarpMatrix(const Mat src, const Mat dst);
-    std::vector<Point2f> warpBack(const std::vector<Point2f> &dst_pts);
+    std::vector<Point2f> warpBack(const std::vector<Point2f> &dst_pts) const;
+    Mat warpBack(const Mat &dst_pts) const;
     Mat crop(const Mat &inputImg, const Mat &srcPts, const float paddingW, const float paddingH,
              const int minPadding);
 
@@ -36,6 +37,6 @@ private:
     bool rotate90_;
 };
 
-}  // namespace wechat_qrcode
+}  // namespace scantrust_qrcode
 }  // namespace cv
-#endif  // __DETECTOR_ALIGN_HPP_
+#endif  // __SCANTRUST_QRCODE_DETECTOR_ALIGN_HPP_

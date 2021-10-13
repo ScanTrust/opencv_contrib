@@ -17,8 +17,8 @@ using zxing::Ref;
 using zxing::Result;
 using zxing::UnicomBlock;
 namespace cv {
-namespace wechat_qrcode {
-int DecoderMgr::decodeImage(cv::Mat src, bool use_nn_detector, string& result) {
+namespace scantrust_qrcode {
+int DecoderMgr::decodeImage(cv::Mat src, zxing::Ref<zxing::Result>& result) {
     int width = src.cols;
     int height = src.rows;
     if (width <= 20 || height <= 20)
@@ -30,22 +30,22 @@ int DecoderMgr::decodeImage(cv::Mat src, bool use_nn_detector, string& result) {
 
     zxing::Ref<zxing::Result> zx_result;
 
-    decode_hints_.setUseNNDetector(use_nn_detector);
+    decode_hints_.setUseNNDetector(false);
 
-    Ref<ImgSource> source;
+    Ref<wechat_qrcode::ImgSource> source;
     qbarUicomBlock_ = new UnicomBlock(width, height);
 
     // Four Binarizers
     int tryBinarizeTime = 4;
     for (int tb = 0; tb < tryBinarizeTime; tb++) {
         if (source == NULL || height * width > source->getMaxSize()) {
-            source = ImgSource::create(scaled_img_zx.data(), width, height);
+            source = wechat_qrcode::ImgSource::create(scaled_img_zx.data(), width, height);
         } else {
             source->reset(scaled_img_zx.data(), width, height);
         }
         int ret = TryDecode(source, zx_result);
         if (!ret) {
-            result = zx_result->getText()->getText();
+            result = zx_result;
             return ret;
         }
         // try different binarizers
@@ -76,5 +76,5 @@ int DecoderMgr::TryDecode(Ref<LuminanceSource> source, Ref<Result>& result) {
 Ref<Result> DecoderMgr::Decode(Ref<BinaryBitmap> image, DecodeHints hints) {
     return reader_->decode(image, hints);
 }
-}  // namespace wechat_qrcode
+}  // namespace scantrust_qrcode
 }  // namespace cv

@@ -12,66 +12,6 @@
  */
 namespace cv {
 namespace wechat_qrcode {
-
-
-//! @addtogroup wechat_qrcode
-//! @{
-/**
- * @brief WeChatQRCodeResult includes information about detected instance of QR codes.
- *
- */
-class CV_EXPORTS_W_SIMPLE WeChatQRCodeResult
-{
-
-public:
-    /**
-     * @brief Initialize a WeChatQRCodeResult.
-     *
-     * @param text decoded text
-     * @param rawBytes binary data
-     * @param qrCorners locations of QR four corners, starting from the bottom left one.
-     * @param detectorPoints corners of the rectangle containing the QR
-     * @param charset charset of the encoded string
-     * @param qrcodeVersion version of the QR codes
-     * @param binaryMethod binarising method used to detect the QR
-     * @param ecLevel error correction level of the QR (L, M, Q, H)
-     * @param charsetMode
-     * @param decodeScale image scaling factor used to detect the QR
-     */
-    CV_WRAP WeChatQRCodeResult(const std::string &text, const std::vector<char> &rawBytes,
-                               const Mat &qrCorners, const Mat &detectorPoints,
-                               const std::string &charset, int qrcodeVersion,
-                               int binaryMethod, const std::string &ecLevel,
-                               const std::string &charsetMode, float decodeScale);
-
-    CV_WRAP const std::string& getText() const;
-    CV_WRAP const std::vector<char>& getRawBytes() const;
-    CV_WRAP Mat getQrCorners() const;
-    CV_WRAP Mat getDetectorPoints() const;
-    CV_WRAP const std::string& getCharset() const;
-    CV_WRAP int getQrcodeVersion() const;
-    CV_WRAP int getBinaryMethod() const;
-    CV_WRAP const std::string& getEcLevel() const;
-    CV_WRAP const std::string& getCharsetMode() const;
-    CV_WRAP float getDecodeScale() const;
-
-    ~WeChatQRCodeResult() = default;
-
-private:
-    std::string text_;
-    std::vector<char> rawBytes_;
-    Mat qrCorners_;
-    Mat detectorPoints_;
-    std::string charset_;
-    int qrcodeVersion_;
-    int binaryMethod_;
-    std::string ecLevel_;
-    std::string charsetMode_;
-    float decodeScale_;
-};
-//! @}
-
-
 //! @addtogroup wechat_qrcode
 //! @{
 /**
@@ -96,13 +36,12 @@ public:
     CV_WRAP WeChatQRCode(const std::string& detector_prototxt_path = "",
                          const std::string& detector_caffe_model_path = "",
                          const std::string& super_resolution_prototxt_path = "",
-                         const std::string& super_resolution_caffe_model_path = "",
-                         bool multiscale = true);
+                         const std::string& super_resolution_caffe_model_path = "");
     ~WeChatQRCode(){};
 
     /**
-     * @brief  Both detects and decodes QR code, returns only a list of decoded string.
-     * To simplify the usage, there is only two API: detectAndDecode, detectAndDecodeFullOutput
+     * @brief  Both detects and decodes QR code.
+     * To simplify the usage, there is a only API: detectAndDecode
      *
      * @param img supports grayscale or color (BGR) image.
      * @param points optional output array of vertices of the found QR code quadrangle. Will be
@@ -111,15 +50,6 @@ public:
      */
     CV_WRAP std::vector<std::string> detectAndDecode(InputArray img,
                                                      OutputArrayOfArrays points = noArray());
-
-    /**
-     * @brief  Both detects and decodes QR code, returns a list of decoded QR.
-     * To simplify the usage, there is only two API: detectAndDecode, detectAndDecodeFullOutput
-     *
-     * @param img supports grayscale or color (BGR) image.
-     * @return list of QR.
-     */
-    CV_WRAP std::vector<WeChatQRCodeResult> detectAndDecodeFullOutput(InputArray img);
 
 protected:
     class Impl;

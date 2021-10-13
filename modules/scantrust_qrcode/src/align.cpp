@@ -4,13 +4,13 @@
 //
 // Tencent is pleased to support the open source community by making WeChat QRCode available.
 // Copyright (C) 2020 THL A29 Limited, a Tencent company. All rights reserved.
-#include "../precomp.hpp"
+#include "precomp.hpp"
 #include "align.hpp"
 
 using std::max;
 using std::min;
 namespace cv {
-namespace wechat_qrcode {
+namespace scantrust_qrcode {
 Align::Align() { rotate90_ = false; }
 
 Mat Align::calcWarpMatrix(const Mat src, const Mat dst) {
@@ -19,12 +19,27 @@ Mat Align::calcWarpMatrix(const Mat src, const Mat dst) {
     return M_;
 }
 
-vector<Point2f> Align::warpBack(const vector<Point2f> &dst_pts) {
+vector<Point2f> Align::warpBack(const vector<Point2f> &dst_pts) const {
     vector<Point2f> src_pts;
     for (size_t j = 0; j < dst_pts.size(); j++) {
         auto src_x = (rotate90_ ? dst_pts[j].y : dst_pts[j].x) + crop_x_;
         auto src_y = (rotate90_ ? dst_pts[j].x : dst_pts[j].y) + crop_y_;
         src_pts.push_back(Point2f(src_x, src_y));
+    }
+    return src_pts;
+}
+
+Mat Align::warpBack(const Mat &dst_pts) const {
+    CV_Assert(dst_pts.channels() == 1 & dst_pts.cols == 2);
+    CV_Assert(dst_pts.type() == CV_32F);
+
+    Mat src_pts(dst_pts.rows, 2, CV_32FC1);
+    float x, y;
+    for (int j = 0; j < dst_pts.rows; j++) {
+        x = dst_pts.at<float>(j, 0);
+        y = dst_pts.at<float>(j, 1);
+        src_pts.at<float>(j, 0) = (rotate90_ ? y : x) + crop_x_;
+        src_pts.at<float>(j, 1) = (rotate90_ ? x : y) + crop_y_;
     }
     return src_pts;
 }
