@@ -38,14 +38,15 @@ public:
      * @param charsetMode
      * @param decodeScale image scaling factor used to detect the QR
      */
-    CV_WRAP ScantrustQRCodeResult(const std::string &text, const std::vector<char> &rawBytes, const Mat &qrCorners,
-                                  Mat qrPatternsCenter, const std::string &charset, int qrcodeVersion, int qrcodeCells,
+    CV_WRAP ScantrustQRCodeResult(const std::string &text, const std::vector<char> &rawBytes,
+                                  const std::vector<Point2f>& qrCorners, const std::vector<Point2f>& qrPatternsCenter,
+                                  const std::string &charset, int qrcodeVersion, int qrcodeCells,
                                   int binaryMethod, const std::string &ecLevel, const std::string &charsetMode, float decodeScale);
 
     CV_WRAP const std::string& getText() const;
     CV_WRAP const std::vector<char>& getRawBytes() const;
-    CV_WRAP Mat getQrCorners() const;
-    CV_WRAP Mat getQrPatternsCenter() const;
+    CV_WRAP const std::vector<Point2f>& getQrCorners() const;
+    CV_WRAP const std::vector<Point2f>& getQrPatternsCenter() const;
     CV_WRAP const std::string& getCharset() const;
     CV_WRAP int getQrcodeVersion() const;
     CV_WRAP int getQrCells() const;
@@ -59,8 +60,8 @@ public:
 private:
     std::string text_;
     std::vector<char> rawBytes_;
-    Mat qrCorners_;
-    Mat qrPatternsCenter_;
+    std::vector<Point2f> qrCorners_;
+    std::vector<Point2f> qrPatternsCenter_;
     Mat detectorPoints_;
     std::string charset_;
     int qrcodeVersion_;

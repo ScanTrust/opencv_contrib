@@ -16,8 +16,9 @@
 namespace cv {
 namespace scantrust_qrcode {
 
-static Mat unwrapsQrCorners(const Ref<zxing::Result> &result, const Align &aligner) {
-    Mat qrPoints(result->getResultPoints()->size() , 2, CV_32FC1);   // result.getResultPoints()
+static std::vector<Point2f> unwrapsQrCorners(const Ref<zxing::Result> &result, const Align &aligner) {
+//    Mat qrPoints(result->getResultPoints()->size() , 2, CV_32FC1);   // result.getResultPoints()
+    std::vector<Point2f> qrPoints(result->getResultPoints()->size());
 
     float scaleFactor = result->getDecodeScale();
 
@@ -25,8 +26,9 @@ static Mat unwrapsQrCorners(const Ref<zxing::Result> &result, const Align &align
     // to compensate scaling of the detector's input image
     int i = 0;
     for(auto& p : result->getResultPoints()->values()) {
-        qrPoints.at<float>(i, 0) = p->getX() / scaleFactor;
-        qrPoints.at<float>(i, 1) = p->getY() / scaleFactor;
+        Point2f& pd = qrPoints[i];
+        pd.x = p->getX() / scaleFactor;
+        pd.y = p->getY() / scaleFactor;
         ++i;
     }
 
@@ -36,7 +38,7 @@ static Mat unwrapsQrCorners(const Ref<zxing::Result> &result, const Align &align
     return qrPoints;
 }
 
-static vector<Point2f> getQrPatternsCenter(const Mat &qrPoints, float qr_cells) {
+static vector<Point2f> getQrPatternsCenter(const vector<Point2f> &qrPoints, float qr_cells) {
     vector<Point2f> templateCorners = {
             {0.,         qr_cells},
             {0.,         0.},
@@ -71,17 +73,17 @@ static vector<Point2f> getQrPatternsCenter(const Mat &qrPoints, float qr_cells) 
 static ScantrustQRCodeResult scantrustQRCodeResultFromZXingResult(const zxing::Ref<zxing::Result>& result,
                                                             const Align& aligner) {
 
-    Mat qrPoints = unwrapsQrCorners(result, aligner);
+        std::vector<Point2f> qrPoints = unwrapsQrCorners(result, aligner);
     
     int qr_cells = (result->getQRCodeVersion() * 4) + 17;
 
-        vector<Point2f> qrPattersCenter = getQrPatternsCenter(qrPoints, qr_cells);
+        vector<Point2f> qrPattersCenter = getQrPatternsCenter(qrPoints, (float) qr_cells);
 
-        return {
+    return {
         result->getText()->getText(),
         result->getRawBytes()->values(),
         qrPoints,
-        Mat(4 , 2, CV_32FC1, qrPattersCenter.data()),
+        qrPattersCenter,
         result->getCharset(),
         result->getQRCodeVersion(),
         qr_cells,
@@ -92,7 +94,8 @@ static ScantrustQRCodeResult scantrustQRCodeResultFromZXingResult(const zxing::R
     };
 }
 
-    ScantrustQRCodeResult::ScantrustQRCodeResult(const std::string &text, const std::vector<char> &rawBytes, const Mat &qrCorners, Mat qrPatternsCenter,
+    ScantrustQRCodeResult::ScantrustQRCodeResult(const std::string &text, const std::vector<char> &rawBytes,
+                                                 const std::vector<Point2f>& qrCorners, const std::vector<Point2f>& qrPatternsCenter,
                                                  const std::string &charset, int qrcodeVersion, int qrcodeCells, int binaryMethod, const std::string &ecLevel,
                                                  const std::string &charsetMode, float decodeScale)
 : text_(text), rawBytes_(rawBytes), qrCorners_(qrCorners),
@@ -109,11 +112,11 @@ const vector<char>& ScantrustQRCodeResult::getRawBytes() const {
     return rawBytes_;
 }
 
-Mat ScantrustQRCodeResult::getQrCorners() const {
+const std::vector<Point2f>& ScantrustQRCodeResult::getQrCorners() const {
     return qrCorners_;
 }
 
-Mat ScantrustQRCodeResult::getQrPatternsCenter() const {
+const std::vector<Point2f>& ScantrustQRCodeResult::getQrPatternsCenter() const {
     return qrPatternsCenter_;
 }
 
