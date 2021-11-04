@@ -11,6 +11,7 @@
 #include "decodermgr.hpp"
 #include "align.hpp"
 #include "opencv2/core.hpp"
+#include "opencv2/imgproc.hpp"
 
 namespace cv {
 namespace scantrust_qrcode {
@@ -35,6 +36,30 @@ static Mat unwrapsQrCorners(const Ref<zxing::Result> &result, const Align &align
     return qrPoints;
 }
 
+static vector<Point2f> getQrPatternsCenter(const Mat &qrPoints, float qr_cells) {
+    vector<Point2f> templateCorners = {
+            {0.,         qr_cells},
+            {0.,         0.},
+            {qr_cells, 0.},
+            {qr_cells, qr_cells}
+    };
+
+    vector<Point2f> templatePatternsCenter = {
+            {3.5,              qr_cells - 3.5f},
+            {3.5,              3.5},
+            {qr_cells - 3.5f, 3.5},
+            {qr_cells - 6.5f, qr_cells - 6.5f}
+    };
+
+    Mat templatePatternsCenter_{templatePatternsCenter};
+
+    Mat H = getPerspectiveTransform(qrPoints, Mat(templateCorners));
+
+    vector<Point2f> qrPattersCenter;
+    perspectiveTransform(templatePatternsCenter, qrPattersCenter, H.inv());
+    return qrPattersCenter;
+}
+
 /**
  * @brief Helper function to create a ScantrustQRCodeResult out of a ZXing result, aligner and detector points
  *
@@ -47,13 +72,19 @@ static ScantrustQRCodeResult scantrustQRCodeResultFromZXingResult(const zxing::R
                                                             const Align& aligner) {
 
     Mat qrPoints = unwrapsQrCorners(result, aligner);
+    
+    int qr_cells = (result->getQRCodeVersion() * 4) + 17;
 
-    return {
+        vector<Point2f> qrPattersCenter = getQrPatternsCenter(qrPoints, qr_cells);
+
+        return {
         result->getText()->getText(),
         result->getRawBytes()->values(),
         qrPoints,
+        Mat(4 , 2, CV_32FC1, qrPattersCenter.data()),
         result->getCharset(),
         result->getQRCodeVersion(),
+        qr_cells,
         result->getBinaryMethod(),
         result->getEcLevel(),
         result->getChartsetMode(),
@@ -61,14 +92,13 @@ static ScantrustQRCodeResult scantrustQRCodeResultFromZXingResult(const zxing::R
     };
 }
 
-    ScantrustQRCodeResult::ScantrustQRCodeResult(
-    const string &text, const vector<char> &rawBytes, const Mat &qrCorners,
-    const string &charset, int qrcodeVersion, int binaryMethod,
-    const string &ecLevel, const string &charsetMode, float decodeScale)
+    ScantrustQRCodeResult::ScantrustQRCodeResult(const std::string &text, const std::vector<char> &rawBytes, const Mat &qrCorners, Mat qrPatternsCenter,
+                                                 const std::string &charset, int qrcodeVersion, int qrcodeCells, int binaryMethod, const std::string &ecLevel,
+                                                 const std::string &charsetMode, float decodeScale)
 : text_(text), rawBytes_(rawBytes), qrCorners_(qrCorners),
-  charset_(charset), qrcodeVersion_(qrcodeVersion),
-  binaryMethod_(binaryMethod), ecLevel_(ecLevel),
-  charsetMode_(charsetMode), decodeScale_(decodeScale)
+  qrPatternsCenter_(qrPatternsCenter), charset_(charset),
+  qrcodeVersion_(qrcodeVersion), qrcodeCells_(qrcodeCells), binaryMethod_(binaryMethod),
+  ecLevel_(ecLevel), charsetMode_(charsetMode), decodeScale_(decodeScale)
 {}
 
 const string &ScantrustQRCodeResult::getText() const {
@@ -83,12 +113,20 @@ Mat ScantrustQRCodeResult::getQrCorners() const {
     return qrCorners_;
 }
 
+Mat ScantrustQRCodeResult::getQrPatternsCenter() const {
+    return qrPatternsCenter_;
+}
+
 const string& ScantrustQRCodeResult::getCharset() const {
     return charset_;
 }
 
 int ScantrustQRCodeResult::getQrcodeVersion() const {
     return qrcodeVersion_;
+}
+
+int ScantrustQRCodeResult::getQrCells() const {
+    return qrcodeCells_;
 }
 
 int ScantrustQRCodeResult::getBinaryMethod() const {
@@ -129,10 +167,10 @@ ScantrustQRCode::ScantrustQRCode()
 {
 
     DownscalingRules downscale_rules = {
-        {4500, {20.0, 50.0, 18.0, 22.0, 12.0, 6.0}},
-        {3000, {14.0, 16.0, 6.0, 42.0, 40.0, 4.0}},
-        {1500, {18.0, 16.0, 6.0, 5.0, 2.0}},
-        {0, {8.0, 5.0, 1.0}}
+        {4500, {16.0, 36.0, 22.0, 18.0, 14.0, 6.0, 4.0}},
+        {3000, {18.0, 12.0, 22.0, 16.0, 14.0, 10.0, 8.0, 6.0, 4.0}},
+        {1500, {26.0, 6.0, 4.0, 2.0}},
+        {0, {2.0, 1.0}}
     };
     p = makePtr<ScantrustQRCode::Impl>(downscale_rules);
 }
@@ -174,12 +212,17 @@ vector<ScantrustQRCodeResult> ScantrustQRCode::Impl::decode(const Mat& img) {
     // scale_list contains different scale ratios
     auto downscale_list = getDownscaleList(img.cols, img.rows);
     for (auto cur_downscale : downscale_list) {
-        InterpolationFlags interpolation_mode = cur_downscale <= 10 ? INTER_AREA : INTER_NEAREST;
-
-        float cur_scale = 1.f / cur_downscale;
-
         if( cur_downscale != 1) {
-            resize(img, scaled_img, Size(), cur_scale, cur_scale, interpolation_mode);
+            float h_cur_downscale  = 2.f / cur_downscale;
+            Mat tmp;
+            // first apply a `x(downscale / 2)` NEAREST downscale
+            if (h_cur_downscale != 1) {
+                resize(img, tmp, Size(), h_cur_downscale, h_cur_downscale, INTER_NEAREST);
+            } else {
+                tmp = img;
+            }
+            // then apply a `x2` AREA downscale
+            resize(tmp, scaled_img, Size(), 0.5, 0.5, INTER_AREA);
         } else {
             scaled_img = img;
         }
@@ -188,7 +231,7 @@ vector<ScantrustQRCodeResult> ScantrustQRCode::Impl::decode(const Mat& img) {
         auto ret = decodemgr.decodeImage(scaled_img, result);
 
         if (ret == 0) {
-            result->setDecodeScale(cur_scale);
+            result->setDecodeScale(1.f / cur_downscale);
             qr_results.push_back(scantrustQRCodeResultFromZXingResult(result, aligner));
             break;
         }
