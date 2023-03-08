@@ -106,8 +106,8 @@ public:
 
      */
     CV_WRAP ScantrustQRCode();
-    CV_WRAP ScantrustQRCode(const DownscalingRules& downscalingRules);
-    ~ScantrustQRCode(){};
+    CV_WRAP explicit ScantrustQRCode(const DownscalingRules& downscalingRules);
+    ~ScantrustQRCode()= default;
 
     /**
      * @brief  Both detects and decodes QR code, returns a list of decoded QR.

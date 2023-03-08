@@ -247,8 +247,8 @@ DownscalingRule::DownscalingRule():
 lower_size_limit(), downscaling_factor_sequence()
 {}
 
-DownscalingRule::DownscalingRule(int lower_size_limit, vector<float> downscaling_factor_sequence):
-lower_size_limit(lower_size_limit), downscaling_factor_sequence(std::move(downscaling_factor_sequence))
+DownscalingRule::DownscalingRule(int lower_size_limit_, vector<float> downscaling_factor_sequence):
+lower_size_limit(lower_size_limit_), downscaling_factor_sequence(std::move(downscaling_factor_sequence))
 {}
 
 vector<float> ScantrustQRCode::Impl::getDownscaleList(int width, int height) {

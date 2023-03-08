@@ -64,10 +64,11 @@ namespace opencv_test {
             Mat src = imread(image_path, IMREAD_GRAYSCALE);
             ASSERT_FALSE(src.empty()) << "Can't read image: " << image_path;
 
-            vector<string> decoded_info;
             auto detector = cv::scantrust_qrcode::ScantrustQRCode();
             vector<scantrust_qrcode::ScantrustQRCodeResult> results = detector.detectAndDecode(src);
 
+            vector<string> decoded_info;
+            decoded_info.reserve(results.size());
             for (auto r : results) {
                 decoded_info.push_back(r.getText());
             }
@@ -87,7 +88,7 @@ namespace opencv_test {
                     if (name_test_image == name_current_image) {
                         std::string original_info = config["info"];
                         string decoded_str;
-                        if (decoded_info.size()) {
+                        if (!decoded_info.empty()) {
                             decoded_str = decoded_info[0];
                         }
                         EXPECT_EQ(decoded_str, original_info);
@@ -133,7 +134,7 @@ namespace opencv_test {
                     if (name_test_image == name_current_image) {
                         std::string original_info = config["info"];
                         string decoded_str;
-                        if (decoded_info.size()) {
+                        if (!decoded_info.empty()) {
                             decoded_str = decoded_info[0];
                         }
                         EXPECT_EQ(decoded_str, original_info);
@@ -156,11 +157,12 @@ namespace opencv_test {
             Mat src = imread(image_path, IMREAD_GRAYSCALE);
             ASSERT_FALSE(src.empty()) << "Can't read image: " << image_path;
 
-            vector<string> decoded_info;
             auto detector = cv::scantrust_qrcode::ScantrustQRCode();
             vector<scantrust_qrcode::ScantrustQRCodeResult> results = detector.detectAndDecode(src);
 
-            for (auto r : results) {
+            vector<string> decoded_info;
+            decoded_info.reserve(results.size());
+            for (const auto& r : results) {
                 decoded_info.push_back(r.getText());
             }
 
@@ -179,7 +181,7 @@ namespace opencv_test {
                     if (name_test_image == name_current_image) {
                         std::string original_info = config["info"];
                         string decoded_str;
-                        if (decoded_info.size()) {
+                        if (!decoded_info.empty()) {
                             decoded_str = decoded_info[0];
                         }
                         EXPECT_EQ(decoded_str, original_info);
@@ -202,11 +204,12 @@ namespace opencv_test {
             Mat src = imread(image_path, IMREAD_GRAYSCALE);
             ASSERT_FALSE(src.empty()) << "Can't read image: " << image_path;
 
-            vector<string> decoded_info;
             auto detector = cv::scantrust_qrcode::ScantrustQRCode();
             vector<scantrust_qrcode::ScantrustQRCodeResult> results = detector.detectAndDecode(src);
 
-            for (auto r : results) {
+            vector<string> decoded_info;
+            decoded_info.reserve(results.size());
+            for (const auto& r : results) {
                 decoded_info.push_back(r.getText());
             }
 
