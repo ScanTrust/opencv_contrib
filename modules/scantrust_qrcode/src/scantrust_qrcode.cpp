@@ -74,7 +74,7 @@ static ScantrustQRCodeResult scantrustQRCodeResultFromZXingResult(const zxing::R
                                                             const Align& aligner) {
 
         std::vector<Point2f> qrPoints = unwrapsQrCorners(result, aligner);
-    
+
     int qr_cells = (result->getQRCodeVersion() * 4) + 17;
 
         vector<Point2f> qrPattersCenter = getQrPatternsCenter(qrPoints, (float) qr_cells);
@@ -150,9 +150,9 @@ float ScantrustQRCodeResult::getDecodeScale() const {
 
 class ScantrustQRCode::Impl {
 public:
-    DownscalingRules m_downscalingRules;
+    std::vector<DownscalingRule> m_downscalingRules;
 
-    Impl(const DownscalingRules& downscalingRules):m_downscalingRules(downscalingRules) {}
+    Impl(const std::vector<DownscalingRule>& downscalingRules):m_downscalingRules(downscalingRules) {}
     ~Impl() = default;
     /**
      * @brief decode QR codes
@@ -169,7 +169,7 @@ public:
 ScantrustQRCode::ScantrustQRCode()
 {
 
-    DownscalingRules downscale_rules = {
+    std::vector<DownscalingRule> downscale_rules = {
         {4500, {16.0, 36.0, 22.0, 18.0, 14.0, 6.0, 4.0}},
         {3000, {18.0, 12.0, 22.0, 16.0, 14.0, 10.0, 8.0, 6.0, 4.0}},
         {1500, {26.0, 6.0, 4.0, 2.0}},
@@ -178,7 +178,7 @@ ScantrustQRCode::ScantrustQRCode()
     p = makePtr<ScantrustQRCode::Impl>(downscale_rules);
 }
 
-ScantrustQRCode::ScantrustQRCode(const DownscalingRules& downscalingRules)
+ScantrustQRCode::ScantrustQRCode(const std::vector<DownscalingRule>& downscalingRules)
 {
     p = makePtr<ScantrustQRCode::Impl>(downscalingRules);
 }

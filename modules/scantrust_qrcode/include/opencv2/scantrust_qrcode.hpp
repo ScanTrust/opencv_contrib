@@ -82,8 +82,6 @@ public:
     std::vector<float> downscaling_factor_sequence;
 };
 
-typedef std::vector<DownscalingRule> DownscalingRules;
-
 //! @addtogroup scantrust_qrcode
 //! @{
 /**
@@ -106,7 +104,7 @@ public:
 
      */
     CV_WRAP ScantrustQRCode();
-    CV_WRAP ScantrustQRCode(const DownscalingRules& downscalingRules);
+    CV_WRAP ScantrustQRCode(const std::vector<DownscalingRule>& downscalingRules);
     ~ScantrustQRCode(){};
 
     /**
