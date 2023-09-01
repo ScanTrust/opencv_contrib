@@ -148,6 +148,14 @@ float ScantrustQRCodeResult::getDecodeScale() const {
     return decodeScale_;
 }
 
+class DownscalingRule {
+public:
+    DownscalingRule();
+    CV_WRAP DownscalingRule(int lower_size_limit, std::vector<float> downscaling_factor_sequence);
+    unsigned int lower_size_limit;
+    std::vector<float> downscaling_factor_sequence;
+};
+
 class ScantrustQRCode::Impl {
 public:
     std::vector<DownscalingRule> m_downscalingRules;
@@ -177,12 +185,6 @@ ScantrustQRCode::ScantrustQRCode()
     };
     p = makePtr<ScantrustQRCode::Impl>(downscale_rules);
 }
-
-ScantrustQRCode::ScantrustQRCode(const std::vector<DownscalingRule>& downscalingRules)
-{
-    p = makePtr<ScantrustQRCode::Impl>(downscalingRules);
-}
-
 
 vector<ScantrustQRCodeResult> ScantrustQRCode::detectAndDecode(InputArray img) {
     CV_Assert(!img.empty());
