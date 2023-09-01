@@ -74,7 +74,13 @@ int DecoderMgr::TryDecode(Ref<LuminanceSource> source, Ref<Result>& result) {
 }
 
 Ref<Result> DecoderMgr::Decode(Ref<BinaryBitmap> image, DecodeHints hints) {
-    return reader_->decode(image, hints);
+    // reader_->decode now returns many results. TODO: return the "best" one
+
+    auto results = reader_->decode(image, hints);
+    if (results.size()) {
+        return results[0];
+    }
+    return Ref<Result>();
 }
 }  // namespace scantrust_qrcode
 }  // namespace cv
